@@ -7,42 +7,47 @@ These schemas are used for data validation in your application.
 Each Pydantic model represents a collection in your database.
 Model name is converted to lowercase for the collection name:
 - User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+- Syllabus -> "syllabus" collection
+- Session -> "session" collection
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
-
-# Example schemas (replace with your own):
+from typing import Optional, List
 
 class User(BaseModel):
     """
     Users collection schema
-    Collection name: "user" (lowercase of class name)
+    Collection name: "user"
     """
     name: str = Field(..., description="Full name")
     email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    password_salt: str = Field(..., description="Salt used for hashing")
+    password_hash: str = Field(..., description="Password hash")
 
-class Product(BaseModel):
+class Session(BaseModel):
+    """User sessions (simple token-based sessions)"""
+    user_id: str = Field(..., description="User id (stringified ObjectId)")
+    token: str = Field(..., description="Session token")
+    user_agent: Optional[str] = Field(None, description="Client user agent")
+    expires_at: Optional[str] = Field(None, description="ISO timestamp of expiration")
+
+class WeekPlan(BaseModel):
+    week: int
+    topics: List[str] = []
+    readings: List[str] = []
+    assignments: List[str] = []
+
+class Syllabus(BaseModel):
     """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
+    Syllabuses collection schema
+    Collection name: "syllabus"
     """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+    owner_id: str = Field(..., description="Owner user id")
+    title: str
+    course_code: Optional[str] = None
+    description: Optional[str] = None
+    objectives: List[str] = []
+    weeks: List[WeekPlan] = []
+    level: Optional[str] = None
+    subject: Optional[str] = None
+    duration_weeks: Optional[int] = None
